@@ -15,15 +15,23 @@ import { useField, useForm } from 'vee-validate'
 import { z } from 'zod'
 import { toTypedSchema } from '@vee-validate/zod'
 
+// define a zod object that will be used to validate the form values
+// vee-validate uses validationSchema.parse(value) under the hood to
+// validate the form on changes. 
 const validationSchema = z.object({
   email: emailSchema(),
   password: passwordSchema(),
 })
 
+// define the form & its initial values
+// toTypedSchema function is used to make zod work with vee-validate
+// handleSubmit is a function that accepts a callback as the param, which will be called on successful validation
 const { handleSubmit } = useForm({
   initialValues: { email: '', password: '' },
   validationSchema: toTypedSchema(validationSchema),
 })
+// useField composable to pull out specific values of the form, honestly this feels a little too magic for me but
+// it's not too bad, basically it looks for the closest useForm in the context and syncs with that.
 const { value: email, errorMessage: emailError } = useField<string>('email')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 
@@ -33,6 +41,9 @@ const signIn = handleSubmit(values => {
 })
 
 function emailSchema() {
+  // use zod validators & error messages.
+  // the messages will be used to throw ZodErrors, which will be caught by the 
+  // vee-validate library & useField composable exposes them in errorMessage
   return z
     .string()
     .min(1, 'Email is required')
